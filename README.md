@@ -28,7 +28,7 @@ docker build -t <image-name>:<tag> .
 
 Now, you can run the container as follows: 
 ```
-docker run -p 5000:8080 -rm <image-name>:<tag>
+docker run -p 5000:8080 --rm <image-name>:<tag>
 ```
 
 As a result, you will be able to visit the project`s healthcheck page by navigating to http://localhost:5000/healthcheck.
