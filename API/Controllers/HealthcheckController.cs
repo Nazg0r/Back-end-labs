@@ -2,9 +2,7 @@
 
 namespace API.Controllers
 {
-	[ApiController]
-	[Route("{controller}")]
-	public class HealthcheckController: ControllerBase
+	public class HealthcheckController: BaseApiController
 	{
 		[HttpGet]
 		public ActionResult GetStatus()
