@@ -62,13 +62,13 @@ namespace API.Controllers
 
 			Record newRecord = new()
 			{
-				Id = DataContext.Records.Count + 1,
+				Id = DataContext.Records[DataContext.Records.Count - 1].Id + 1,
 				UserId = record.UserId,
 				CategoryId = record.CategoryId,
 				CreationDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
 				ExpensesSum = record.ExpensesSum,
-				User = DataContext.Users[record.UserId - 1],
-				Category = DataContext.Categories[record.CategoryId - 1]
+				User = DataContext.Users.FirstOrDefault(usr => usr.Id == record.UserId)!,
+				Category = DataContext.Categories.FirstOrDefault(ctgry => ctgry.Id == record.CategoryId)!
 			};
 
 			DataContext.Records.Add(newRecord);

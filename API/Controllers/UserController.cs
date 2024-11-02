@@ -42,7 +42,7 @@ namespace API.Controllers
 
 			User newUser = new()
 			{
-				Id = DataContext.Users.Count + 1,
+				Id = DataContext.Users[DataContext.Users.Count - 1].Id + 1,
 				Name = user.Name
 			};
 

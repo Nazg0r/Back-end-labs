@@ -44,7 +44,7 @@ namespace API.Controllers
 
 			Category newCategory = new()
 			{
-				Id = DataContext.Categories.Count + 1,
+				Id = DataContext.Categories[DataContext.Categories.Count - 1].Id + 1,
 				Name = category.Name
 			};
 
