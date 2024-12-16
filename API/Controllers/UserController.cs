@@ -2,70 +2,62 @@
 using API.DTOs;
 using API.Entities;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace API.Controllers
 {
-	public class UserController() : BaseApiController
+	public class UserController(DataContext dbContext) : BaseApiController
 	{
 		[HttpGet("{id}")]
-		public IActionResult GetUser(int id)
+		public async Task<IActionResult> GetUser(int id)
 		{
-			User? user = DataContext.Users.FirstOrDefault(user => user.Id == id);
+			User? user = await dbContext.Users.FindAsync(id);
 
-			if (user == null) {
+			if (user is null) 
 				return NotFound("Selected user is not found in system");
-			}
-
+			
 			return Ok(user);
 		}
 
 		[HttpDelete("{id}")]
-		public IActionResult DeleteUser(int id)
+		public async Task<IActionResult> DeleteUser(int id)
 		{
-			User? user = DataContext.Users.FirstOrDefault(user => user.Id == id);
-			if (user == null)
-			{
+			User? user = await dbContext.Users.FindAsync(id);
+			if (user is null)
 				return NotFound("Selected user is not found in system");
-			}
-			DataContext.Users.Remove(user);
+
+			dbContext.Users.Remove(user);
+			await dbContext.SaveChangesAsync();
 
 			return Ok(user);
 		}
 
 		[HttpPost]
-		public IActionResult AddUser(UserDTO user)
+		public async Task<IActionResult> AddUser(UserDTO user)
 		{
-			if (CheckUser(user.Name))
-			{
+			if (await CheckUser(user.Name))
 				return BadRequest("A user with this name already exists");
-			}
 
-			User newUser = new()
-			{
-				Id = DataContext.Users[DataContext.Users.Count - 1].Id + 1,
-				Name = user.Name
-			};
+			User newUser = new() { Name = user.Name };
 
-			DataContext.Users.Add(newUser);
+			await dbContext.AddAsync(newUser);
+			await dbContext.SaveChangesAsync();
 
 			return Ok(newUser);
 		}
 
 		[HttpGet]
-		public IActionResult GetUsers()
+		public async Task<IActionResult> GetUsers()
 		{
-			if (DataContext.Users == null)
-			{
+			if (!await dbContext.Users.AnyAsync())
 				return NotFound("The system does not contain any users");
-			}
-			return Ok(DataContext.Users);
+
+			return Ok(await dbContext.Users.ToListAsync());
 		}
 
-		private bool CheckUser(string name)
+		private async Task<bool> CheckUser(string name)
 		{
-			return DataContext.Users.Any(user => user.Name.ToLower() == name.ToLower());
+			return await dbContext.Users.AnyAsync(user => user.Name.ToLower() == name.ToLower());
 		}
-
-
 	}
 }
