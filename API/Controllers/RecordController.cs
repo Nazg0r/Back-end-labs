@@ -2,19 +2,18 @@
 using API.DTOs;
 using API.Entities;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace API.Controllers
 {
-	public class RecordController : BaseApiController
+	public class RecordController(DataContext dbContext) : BaseApiController
 	{
 		[HttpGet("{id}")]
-		public IActionResult GetRecord(int id)
+		public async Task<IActionResult> GetRecord(int id)
 		{
-			Record? record = DataContext.Records.FirstOrDefault(rec => rec.Id == id);
-			if (record == null)
-			{
+			Record? record = await dbContext.Records.FindAsync(id);
+			if (record is null)
 				return NotFound("Record is not found in system");
-			}
 
 			return Ok(new
 			{
@@ -27,14 +26,14 @@ namespace API.Controllers
 		}
 
 		[HttpDelete("{id}")]
-		public IActionResult DeleteRecord(int id)
+		public async Task<IActionResult> DeleteRecord(int id)
 		{
-			Record? record = DataContext.Records.FirstOrDefault(rec => rec.Id == id);
+			Record? record = await dbContext.Records.FindAsync(id);
 			if (record == null)
-			{
 				return NotFound("Record is not found in system");
-			}
-			DataContext.Records.Remove(record);
+			
+			dbContext.Records.Remove(record);
+			await dbContext.SaveChangesAsync();
 
 			return Ok(new
 			{
@@ -47,31 +46,29 @@ namespace API.Controllers
 		}
 
 		[HttpPost]
-		public IActionResult AddRecord(RecordDTO record)
+		public async Task<IActionResult> AddRecord(RecordDTO record)
 		{
+			User? user = await dbContext.Users.FirstOrDefaultAsync(usr => usr.Id == record.UserId);
+			Category? category = await dbContext.Categories.FirstOrDefaultAsync(ctgry => ctgry.Id == record.CategoryId);
 
-			if (!DataContext.Users.Any(usr => usr.Id == record.UserId))
-			{
+			if (user is null)
 				return NotFound("User with such id is not found in system");
-			}
 
-			if (!DataContext.Categories.Any(ctgry => ctgry.Id == record.CategoryId))
-			{
+			if (category is null)
 				return NotFound("Category with such id is not found in system");
-			}
 
 			Record newRecord = new()
 			{
-				Id = DataContext.Records[DataContext.Records.Count - 1].Id + 1,
 				UserId = record.UserId,
 				CategoryId = record.CategoryId,
 				CreationDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
 				ExpensesSum = record.ExpensesSum,
-				User = DataContext.Users.FirstOrDefault(usr => usr.Id == record.UserId)!,
-				Category = DataContext.Categories.FirstOrDefault(ctgry => ctgry.Id == record.CategoryId)!
+				User = user,
+				Category = category
 			};
 
-			DataContext.Records.Add(newRecord);
+			dbContext.Records.Add(newRecord);
+			await dbContext.SaveChangesAsync();
 
 			return Ok(new
 			{
@@ -84,42 +81,35 @@ namespace API.Controllers
 		}
 
 		[HttpGet]
-		public IActionResult GetRecords(RecordParamsDTO recordParams)
+		public async Task<IActionResult> GetRecords(RecordParamsDTO recordParams)
 		{
+			IEnumerable<Record>? records = null;
 			if (recordParams.UserId == 0 && recordParams.CategoryId == 0)
-			{
-				return BadRequest("None of the parameters are set");
-			}
+				records = await dbContext.Records.ToListAsync();
 
-			IEnumerable<Record>? records;
-			if (recordParams.UserId != 0 && recordParams.CategoryId == 0)
-			{
-				records = DataContext.Records.Where(rec => rec.User.Id == recordParams.UserId);
-			}
-			else if (recordParams.UserId == 0 && recordParams.CategoryId != 0)
-			{
-				records = DataContext.Records.Where(rec => rec.Category.Id == recordParams.CategoryId);
-			}
-			else
-			{
-				records = DataContext.Records.Where(rec => 
-					rec.User.Id == recordParams.UserId &&
-					rec.Category.Id == recordParams.CategoryId);
-			}
+			IQueryable<Record> query = dbContext.Records;
+
+			if (recordParams.UserId != 0)
+				query = query.Where(rec => rec.User.Id == recordParams.UserId);
+			if (recordParams.CategoryId != 0)
+				query = query.Where(rec => rec.Category.Id == recordParams.CategoryId);
+
+			if (records is null)
+				records = query.ToList();
 
 			if (!records.Any())
-			{
 				return NotFound("No records were found according to the specified parameters");
-			}
-
-			return Ok(records.Select(rec => new 
+			
+			var result = records.Select(rec => new
 			{
 				Id = rec.Id,
-				UserName = rec.User.Name,
-				CategoryName = rec.Category.Name,
+				UserName = rec.User?.Name,
+				CategoryName = rec.Category?.Name,
 				CreationDate = rec.CreationDate,
 				ExpensesSum = rec.ExpensesSum
-			}));
+			});
+
+			return Ok(result);
 		}
 	}
 }
