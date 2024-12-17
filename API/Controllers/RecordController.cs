@@ -21,7 +21,8 @@ namespace API.Controllers
 				UserName = record.User.Name,
 				CategoryName = record.Category.Name,
 				CreationDate = record.CreationDate,
-				ExpensesSum = record.ExpensesSum
+				ExpensesSum = record.ExpensesSum,
+				Currency = record.Currency.Name
 			});
 		}
 
@@ -31,18 +32,21 @@ namespace API.Controllers
 			Record? record = await dbContext.Records.FindAsync(id);
 			if (record == null)
 				return NotFound("Record is not found in system");
-			
-			dbContext.Records.Remove(record);
-			await dbContext.SaveChangesAsync();
 
-			return Ok(new
+			var response = new
 			{
 				Id = record.Id,
 				UserName = record.User.Name,
 				CategoryName = record.Category.Name,
 				CreationDate = record.CreationDate,
-				ExpensesSum = record.ExpensesSum
-			});
+				ExpensesSum = record.ExpensesSum,
+				Currency = record.Currency.Name
+			};
+			
+			dbContext.Records.Remove(record);
+			await dbContext.SaveChangesAsync();
+
+			return Ok(response);
 		}
 
 		[HttpPost]
@@ -57,6 +61,11 @@ namespace API.Controllers
 			if (category is null)
 				return NotFound("Category with such id is not found in system");
 
+			Currency? currency = await dbContext.Currencies.FirstOrDefaultAsync(c => c.Name == record.Currency);
+
+			if (currency is null)
+				return BadRequest("No such currency in our system. Try \"USD\", \"EUR\", \"UAH\"");
+
 			Record newRecord = new()
 			{
 				UserId = record.UserId,
@@ -64,7 +73,9 @@ namespace API.Controllers
 				CreationDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
 				ExpensesSum = record.ExpensesSum,
 				User = user,
-				Category = category
+				Category = category,
+				CurrencyId = currency.Id,
+				Currency = currency
 			};
 
 			dbContext.Records.Add(newRecord);
@@ -76,7 +87,8 @@ namespace API.Controllers
 				UserName = newRecord.User.Name,
 				CategoryName = newRecord.Category.Name,
 				CreationDate = newRecord.CreationDate,
-				ExpensesSum = newRecord.ExpensesSum
+				ExpensesSum = newRecord.ExpensesSum,
+				Currency = newRecord.Currency.Name
 			});
 		}
 
@@ -106,7 +118,8 @@ namespace API.Controllers
 				UserName = rec.User?.Name,
 				CategoryName = rec.Category?.Name,
 				CreationDate = rec.CreationDate,
-				ExpensesSum = rec.ExpensesSum
+				ExpensesSum = rec.ExpensesSum,
+				Currency = rec.Currency.Name
 			});
 
 			return Ok(result);
