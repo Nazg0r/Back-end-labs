@@ -1,10 +1,34 @@
-version: "3"
+version: "3.8"
 
 services:
+  db:
+    container_name: db
+    image: postgres:14.15-alpine3.21
+    environment: 
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: Back-end-api-db
+      POSTGRES_USER: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d Back-end-api-db"]
+      interval: 5s
+      retries: 5
+      start_period: 10s
+
+      
   api:
     container_name: api
     build:
       context: .
       dockerfile: Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DbConnection=Host=db;Port=5432;Database=Back-end-api-db;Username=postgres;Password=${DB_PASSWORD}
     ports:
       - "5000:8080"
+    depends_on:
+      db:
+        condition: service_healthy 
