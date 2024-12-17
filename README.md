@@ -48,3 +48,6 @@ docker-compose down
 ## Go to deploy
 
 You can visit the deployed project's healthcheck page by following the [link](https://back-end-labs-14cq.onrender.com/healthcheck)
+
+## Variant of work - 1
+7 % 3 = **1**
