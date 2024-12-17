@@ -8,6 +8,7 @@ namespace API.Data
 		public DbSet<User> Users { get; set; }
 		public DbSet<Record> Records { get; set; }
 		public DbSet<Category> Categories { get; set; }
+		public DbSet<Currency> Currencies { get; set; }
 
 	}
 }
