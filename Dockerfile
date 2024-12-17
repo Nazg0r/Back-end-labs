@@ -18,4 +18,9 @@ RUN dotnet publish "./API.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:Use
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+ARG DB_HOST
+ARG DB_NAME
+ARG DB_USER
+ARG DB_PASSWORD
+ENV ConnectionStrings__DbConnection="Host=${DB_HOST};Port=5432;Database=${DB_NAME};Username=${DB_USER};Password=${DB_PASSWORD}"
 ENTRYPOINT ["dotnet", "API.dll"]

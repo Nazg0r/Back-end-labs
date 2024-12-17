@@ -26,7 +26,7 @@ services:
       dockerfile: Dockerfile
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DbConnection=Host=db;Port=5432;Database=Back-end-api-db;Username=postgres;Password=${DB_PASSWORD}
+      - ConnectionStrings__DbConnection=Host=${DB_HOST};Port=5432;Database=${DB_NAME};Username=${DB_USER};Password=${DB_PASSWORD}
     ports:
       - "5000:8080"
     depends_on:
