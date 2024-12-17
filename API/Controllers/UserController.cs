@@ -16,7 +16,12 @@ namespace API.Controllers
 			if (user is null) 
 				return NotFound("Selected user is not found in system");
 			
-			return Ok(user);
+			return Ok(new
+			{
+				Id = user.Id,
+				Name = user.Name,
+				Currency = user.Currency.Name
+			});
 		}
 
 		[HttpDelete("{id}")]
@@ -26,10 +31,17 @@ namespace API.Controllers
 			if (user is null)
 				return NotFound("Selected user is not found in system");
 
+			var response = new 
+			{
+				Id = user.Id,
+				Name = user.Name,
+				Currency = user.Currency.Name
+			};
+
 			dbContext.Users.Remove(user);
 			await dbContext.SaveChangesAsync();
 
-			return Ok(user);
+			return Ok(response);
 		}
 
 		[HttpPost]
@@ -38,12 +50,23 @@ namespace API.Controllers
 			if (await CheckUser(user.Name))
 				return BadRequest("A user with this name already exists");
 
-			User newUser = new() { Name = user.Name };
+			Currency? currency = await dbContext.Currencies.FirstOrDefaultAsync(c => c.Name == user.Currency);
+
+			if (currency is null)
+				return BadRequest("No such currency in our system. Try \"USD\", \"EUR\", \"UAH\"");
+
+
+			User newUser = new() { Name = user.Name, CurrencyId = currency.Id };
 
 			await dbContext.AddAsync(newUser);
 			await dbContext.SaveChangesAsync();
 
-			return Ok(newUser);
+			return Ok(new
+			{
+				Id = newUser.Id,
+				Name = newUser.Name,
+				Currency = newUser.Currency.Name
+			});
 		}
 
 		[HttpGet]
@@ -52,7 +75,17 @@ namespace API.Controllers
 			if (!await dbContext.Users.AnyAsync())
 				return NotFound("The system does not contain any users");
 
-			return Ok(await dbContext.Users.ToListAsync());
+			return Ok
+			(
+				await dbContext.Users
+				.Select(user => new 
+				{
+					Id = user.Id,
+					Name = user.Name,
+					Currency = user.Currency.Name
+				})
+				.ToListAsync()
+			);
 		}
 
 		private async Task<bool> CheckUser(string name)
