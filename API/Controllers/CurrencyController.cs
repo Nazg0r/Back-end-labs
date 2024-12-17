@@ -20,9 +20,9 @@ namespace API.Controllers
 		}
 
 		[HttpPost]
-		public async Task<IActionResult> AddCategory(CurrencyDTO currency)
+		public async Task<IActionResult> AddCurrency(CurrencyDTO currency)
 		{
-			if (dbContext.Categories.Any(currency => currency.Name.ToLower() == currency.Name.ToLower()))
+			if (dbContext.Currencies.Any(c => c.Name.ToLower() == currency.Name.ToLower()))
 				return BadRequest("This currency already exists");
 
 			Currency newCurrency = new()
