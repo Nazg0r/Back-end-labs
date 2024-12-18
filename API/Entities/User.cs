@@ -15,6 +15,10 @@ namespace API.Entities
 
 		[Column("name")]
 		public required string Name { get; set; }
+		[Column("hash_password")]
+		public required byte[] HashPassword { get; set; }
+		[Column("salt")]
+		public required byte[] Salt { get; set; }
 
 		[ForeignKey("CurrencyId")]
 		public virtual Currency Currency { get; set; }
