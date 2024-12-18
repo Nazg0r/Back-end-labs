@@ -1,11 +1,13 @@
 ﻿using API.Data;
 using API.DTOs;
 using API.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Xml.Linq;
 
 namespace API.Controllers
 {
+	[Authorize]
 	public class CategoryController(DataContext dbContext) : BaseApiController
 	{
 		[HttpGet("{id}")]
