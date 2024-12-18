@@ -22,5 +22,7 @@ ARG DB_HOST
 ARG DB_NAME
 ARG DB_USER
 ARG DB_PASSWORD
+ARG TOKEN_KEY
+ENV TokenKey="${TOKEN_KEY}"
 ENV ConnectionStrings__DbConnection="Host=${DB_HOST};Port=5432;Database=${DB_NAME};Username=${DB_USER};Password=${DB_PASSWORD}"
 ENTRYPOINT ["dotnet", "API.dll"]

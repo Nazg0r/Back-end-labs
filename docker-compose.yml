@@ -27,6 +27,7 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__DbConnection=Host=${DB_HOST};Port=5432;Database=${DB_NAME};Username=${DB_USER};Password=${DB_PASSWORD}
+      - TokenKey=${TOKEN_KEY}
     ports:
       - "5000:8080"
     depends_on:
